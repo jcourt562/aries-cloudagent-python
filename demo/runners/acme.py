@@ -208,6 +208,24 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
+    ENABLE_CONTROLLER_PTVSD = os.getenv("ENABLE_CONTROLLER_PTVSD", "").lower()
+    ENABLE_CONTROLLER_PTVSD = ENABLE_CONTROLLER_PTVSD and ENABLE_CONTROLLER_PTVSD not in ("false", "0")
+    CONTROLLER_PTVSD_LISTEN_INTERFACE = os.getenv("CONTROLLER_PTVSD_LISTEN_INTERFACE", "0.0.0.0")
+    CONTROLLER_PTVSD_PORT = int(os.getenv("CONTROLLER_PTVSD_PORT", 5678))
+
+    if ENABLE_CONTROLLER_PTVSD:
+        try:
+            import ptvsd
+
+            ptvsd.enable_attach(address=(CONTROLLER_PTVSD_LISTEN_INTERFACE, CONTROLLER_PTVSD_PORT))
+            print("ptvsd is running")
+            print("=== Waiting for debugger to attach ===")
+            # To pause execution until the debugger is attached:
+            ptvsd.wait_for_attach()
+        except ImportError:
+            print("ptvsd library was not found")
+
+
     require_indy()
 
     try:

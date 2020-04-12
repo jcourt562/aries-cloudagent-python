@@ -9,15 +9,15 @@ for PORT in $PORTS; do
   ARGS="${ARGS} -p $PORT"
 done
 
-PTVSD_PORT="${PTVSD_PORT-5678}"
+AGENT_PTVSD_PORT="${AGENT_PTVSD_PORT-5678}"
 
 for arg in $@; do
-  if [ "$arg" = "--debug" ]; then
-    ENABLE_PTVSD=1
-  fi
+	if [ "$arg" = "--debug" ]; then
+		ENABLE_AGENT_PTVSD=1
+	fi
 done
-if [ ! -z "${ENABLE_PTVSD}" ]; then
-  ARGS="${ARGS} -e ENABLE_PTVSD=\"${ENABLE_PTVSD}\" -p $PTVSD_PORT:$PTVSD_PORT"
+if [ ! -z "${ENABLE_AGENT_PTVSD}" ]; then
+	ARGS="${ARGS} -e ENABLE_AGENT_PTVSD=\"${ENABLE_AGENT_PTVSD}\" -p $AGENT_PTVSD_PORT:$AGENT_PTVSD_PORT"
 fi
 
 ARGS="${ARGS} -v /$(pwd)/../logs:/home/indy/logs"

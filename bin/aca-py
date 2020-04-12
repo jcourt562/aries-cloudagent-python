@@ -4,8 +4,10 @@ import os
 import sys
 
 
-ENABLE_PTVSD = os.getenv("ENABLE_PTVSD", "").lower()
-ENABLE_PTVSD = ENABLE_PTVSD and ENABLE_PTVSD not in ("false", "0")
+ENABLE_AGENT_PTVSD = os.getenv("ENABLE_AGENT_PTVSD", "").lower()
+ENABLE_AGENT_PTVSD = ENABLE_AGENT_PTVSD and ENABLE_AGENT_PTVSD not in ("false", "0")
+AGENT_PTVSD_LISTEN_INTERFACE = os.getenv("AGENT_PTVSD_LISTEN_INTERFACE", "0.0.0.0")
+AGENT_PTVSD_PORT = int(os.getenv("AGENT_PTVSD_PORT", 5678))
 
 ENABLE_PYDEVD_PYCHARM = os.getenv("ENABLE_PYDEVD_PYCHARM", "").lower()
 ENABLE_PYDEVD_PYCHARM = ENABLE_PYDEVD_PYCHARM and ENABLE_PYDEVD_PYCHARM not in ("false", "0")
@@ -13,11 +15,11 @@ PYDEVD_PYCHARM_HOST = os.getenv("PYDEVD_PYCHARM_HOST", "localhost")
 PYDEVD_PYCHARM_AGENT_PORT = int(os.getenv("PYDEVD_PYCHARM_AGENT_PORT", 5001))
 
 # --debug-vs to use microsoft's visual studio remote debugger
-if ENABLE_PTVSD or "--debug" in sys.argv:
+if ENABLE_AGENT_PTVSD or "--debug" in sys.argv:
     try:
         import ptvsd
 
-        ptvsd.enable_attach()
+        ptvsd.enable_attach(address=(AGENT_PTVSD_LISTEN_INTERFACE, AGENT_PTVSD_PORT))
         print("ptvsd is running")
         print("=== Waiting for debugger to attach ===")
         # To pause execution until the debugger is attached:

@@ -50,10 +50,11 @@ do
       TRACE_TAG=acapy.events
       continue
     ;;
-    --debug-ptvsd)
-      ENABLE_PTVSD=1
-      continue
-    ;;
+    --debug-controller-ptvsd)
+        ENABLE_CONTROLLER_PTVSD=1
+		CONTROLLER_PTVSD_PORT="${CONTROLLER_PTVSD_PORT-5678}"
+        continue
+        ;;
     --debug-pycharm)
       ENABLE_PYDEVD_PYCHARM=1
       continue
@@ -193,7 +194,12 @@ if ! [ -z "$TAILS_FILE_COUNT" ]; then
 fi
 
 if ! [[ -z "${ENABLE_PYDEVD_PYCHARM}" ]]; then
-  DOCKER_ENV="${DOCKER_ENV} -e ENABLE_PYDEVD_PYCHARM=${ENABLE_PYDEVD_PYCHARM} -e PYDEVD_PYCHARM_CONTROLLER_PORT=${PYDEVD_PYCHARM_CONTROLLER_PORT} -e PYDEVD_PYCHARM_AGENT_PORT=${PYDEVD_PYCHARM_AGENT_PORT}"
+    DOCKER_ENV="${DOCKER_ENV} -e ENABLE_PYDEVD_PYCHARM=${ENABLE_PYDEVD_PYCHARM} -e PYDEVD_PYCHARM_CONTROLLER_PORT=${PYDEVD_PYCHARM_CONTROLLER_PORT} -e PYDEVD_PYCHARM_AGENT_PORT=${PYDEVD_PYCHARM_AGENT_PORT}"
+	echo "Enabling pycharm debugger"
+elif ! [ -z "${ENABLE_CONTROLLER_PTVSD}" ]; then
+	DOCKER_ENV="${DOCKER_ENV} -e ENABLE_CONTROLLER_PTVSD=${ENABLE_CONTROLLER_PTVSD} -e CONTROLLER_PTVSD_PORT=${CONTROLLER_PTVSD_PORT}"
+	DOCKER_PTVSD_PORT="-p ${CONTROLLER_PTVSD_PORT}:${CONTROLLER_PTVSD_PORT}"
+	echo "Enabling ptvsd debugger for controller"
 fi
 
 # on Windows, docker run needs to be prefixed by winpty
@@ -203,9 +209,13 @@ fi
 DOCKER=${DOCKER:-docker}
 
 echo "Starting $AGENT..."
-$DOCKER run --name $AGENT --rm -it ${DOCKER_OPTS} \
-  --network=${DOCKER_NET} \
-  -p 0.0.0.0:$AGENT_PORT_RANGE:$AGENT_PORT_RANGE \
-  -v "/$(pwd)/../logs:/home/indy/logs" \
-  $DOCKER_ENV \
-  faber-alice-demo $AGENT_MODULE --port $AGENT_PORT $ARGS
+LOG_VOLUME="/$(pwd)/../logs:/home/indy/logs"
+RUN_CMD="${DOCKER} run --name ${AGENT} --rm -it ${DOCKER_OPTS} \
+    --network=${DOCKER_NET} \
+	-p 0.0.0.0:${AGENT_PORT_RANGE}:${AGENT_PORT_RANGE} \
+	${DOCKER_PTVSD_PORT:-} \
+	-v ${LOG_VOLUME} \
+	${DOCKER_ENV} \
+	faber-alice-demo ${AGENT_MODULE} --port ${AGENT_PORT} ${ARGS}"
+echo ${RUN_CMD}
+${RUN_CMD}
