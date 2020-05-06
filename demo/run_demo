@@ -55,6 +55,11 @@ do
 		CONTROLLER_PTVSD_PORT="${CONTROLLER_PTVSD_PORT-5678}"
         continue
         ;;
+    --debug-agent-ptvsd)
+        ENABLE_AGENT_PTVSD=1
+		AGENT_PTVSD_PORT="${AGENT_PTVSD_PORT-5678}"
+        continue
+        ;;
     --debug-pycharm)
       ENABLE_PYDEVD_PYCHARM=1
       continue
@@ -196,10 +201,18 @@ fi
 if ! [[ -z "${ENABLE_PYDEVD_PYCHARM}" ]]; then
     DOCKER_ENV="${DOCKER_ENV} -e ENABLE_PYDEVD_PYCHARM=${ENABLE_PYDEVD_PYCHARM} -e PYDEVD_PYCHARM_CONTROLLER_PORT=${PYDEVD_PYCHARM_CONTROLLER_PORT} -e PYDEVD_PYCHARM_AGENT_PORT=${PYDEVD_PYCHARM_AGENT_PORT}"
 	echo "Enabling pycharm debugger"
-elif ! [ -z "${ENABLE_CONTROLLER_PTVSD}" ]; then
+fi
+
+DOCKER_PTVSD_PORT=""    
+if ! [ -z "${ENABLE_CONTROLLER_PTVSD}" ]; then
 	DOCKER_ENV="${DOCKER_ENV} -e ENABLE_CONTROLLER_PTVSD=${ENABLE_CONTROLLER_PTVSD} -e CONTROLLER_PTVSD_PORT=${CONTROLLER_PTVSD_PORT}"
 	DOCKER_PTVSD_PORT="-p ${CONTROLLER_PTVSD_PORT}:${CONTROLLER_PTVSD_PORT}"
 	echo "Enabling ptvsd debugger for controller"
+fi
+if ! [ -z "${ENABLE_AGENT_PTVSD}" ]; then
+	DOCKER_ENV="${DOCKER_ENV} -e ENABLE_AGENT_PTVSD=${ENABLE_AGENT_PTVSD} -e AGENT_PTVSD_PORT=${AGENT_PTVSD_PORT}"
+	DOCKER_PTVSD_PORT="${DOCKER_PTVSD_PORT} -p ${AGENT_PTVSD_PORT}:${AGENT_PTVSD_PORT}"
+	echo "Enabling ptvsd debugger for agent"
 fi
 
 # on Windows, docker run needs to be prefixed by winpty
